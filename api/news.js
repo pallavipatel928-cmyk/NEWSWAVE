@@ -6,6 +6,40 @@ const parser = new Parser({
   }
 });
 
+// Helper function to extract image URL from content
+function extractImageUrl(content) {
+  if (!content) return null;
+  
+  // Look for image URLs in the content
+  const imgRegex = /<img[^>]+src=["']([^"']*)["']/i;
+  const match = content.match(imgRegex);
+  
+  if (match) {
+    const imageUrl = match[1];
+    // Ensure HTTPS for secure content
+    return imageUrl.startsWith('http://') ? imageUrl.replace(/^http:\/\//, 'https://') : imageUrl;
+  }
+  
+  // Look for common image URLs in text
+  const urlRegex = /(https?:\/\/[^\s]*?\.(?:jpg|jpeg|png|gif|webp))(?:[\?\s]|$)/i;
+  const urlMatch = content.match(urlRegex);
+  
+  const extractedUrl = urlMatch ? urlMatch[1] : null;
+  // Ensure HTTPS for secure content
+  return extractedUrl && extractedUrl.startsWith('http://') ? extractedUrl.replace(/^http:\/\//, 'https://') : extractedUrl;
+}
+
+// Helper function to ensure secure URLs
+function ensureSecureUrl(url) {
+  if (!url) return url;
+  
+  // Convert HTTP to HTTPS to avoid mixed content issues
+  if (typeof url === 'string' && url.startsWith('http://')) {
+    return url.replace(/^http:\/\//, 'https://');
+  }
+  return url;
+}
+
 // Storage for submitted news
 let submittedNews = [];
 
@@ -33,11 +67,11 @@ export default async function handler(req, res) {
         const feed = await parser.parseURL(url);
         const items = feed.items.slice(0, 80).map(i => ({
           title: i.title,
-          summary: i.contentSnippet || i.content || i.description || "", 
-          link: i.link,
-          pubDate: i.pubDate,
-          source: feed.title,
-          image_url: i.enclosure?.url || extractImageUrl(i.contentSnippet || i.content || i.description || "")
+          summary: i.contentSnippet || i['content:encoded'] || i.content || i.description || "", 
+          link: i.link || i.guid,
+          pubDate: i.pubDate || i.isoDate,
+          source: feed.title || 'Unknown Source',
+          image_url: ensureSecureUrl(i.enclosure?.url || extractImageUrl(i['content:encoded'] || i.content || i.description || i.contentSnippet || ""))
         }));
         articles = articles.concat(items);
       } catch (e) {
@@ -52,11 +86,11 @@ export default async function handler(req, res) {
           const feed = await parser.parseURL(url);
           const items = feed.items.slice(0, 50).map(i => ({
             title: i.title,
-            summary: i.contentSnippet || i.content || i.description || "",
-            link: i.link,
-            pubDate: i.pubDate,
-            source: feed.title,
-            image_url: i.enclosure?.url || extractImageUrl(i.contentSnippet || i.content || i.description || "")
+            summary: i.contentSnippet || i['content:encoded'] || i.content || i.description || "",
+            link: i.link || i.guid,
+            pubDate: i.pubDate || i.isoDate,
+            source: feed.title || 'Unknown Source',
+            image_url: ensureSecureUrl(i.enclosure?.url || extractImageUrl(i['content:encoded'] || i.content || i.description || i.contentSnippet || ""))
           }));
           articles = articles.concat(items);
         } catch (e) {

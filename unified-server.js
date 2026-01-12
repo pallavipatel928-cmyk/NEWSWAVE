@@ -124,6 +124,29 @@ app.post("/api/submit-news", express.json(), (req, res) => {
   }
 });
 
+// Helper function to extract image URL from content
+function extractImageUrl(content) {
+  if (!content) return null;
+  
+  // Look for image URLs in the content
+  const imgRegex = /<img[^>]+src=["']([^"']*)["']/i;
+  const match = content.match(imgRegex);
+  
+  if (match) {
+    const imageUrl = match[1];
+    // Ensure HTTPS for secure content
+    return imageUrl.startsWith('http://') ? imageUrl.replace(/^http:\/\//, 'https://') : imageUrl;
+  }
+  
+  // Look for common image URLs in text
+  const urlRegex = /(https?:\/\/[^\s]*?\.(?:jpg|jpeg|png|gif|webp))(?:[\?\s]|$)/i;
+  const urlMatch = content.match(urlRegex);
+  
+  const extractedUrl = urlMatch ? urlMatch[1] : null;
+  // Ensure HTTPS for secure content
+  return extractedUrl && extractedUrl.startsWith('http://') ? extractedUrl.replace(/^http:\/\//, 'https://') : extractedUrl;
+}
+
 // Helper function to ensure secure URLs
 function ensureSecureUrl(url) {
   if (!url) return url;
@@ -203,7 +226,7 @@ app.get("/api/news", async (req, res) => {
           link: i.link,
           pubDate: i.pubDate,
           source: feed.title,
-          image_url: ensureSecureUrl(i.enclosure?.url || null)
+          image_url: ensureSecureUrl(i.enclosure?.url || extractImageUrl(i['content:encoded'] || i.description || i.content || i.contentSnippet || ''))
         }));
         articles = articles.concat(items);
       } catch (e) {
@@ -222,7 +245,7 @@ app.get("/api/news", async (req, res) => {
             link: i.link,
             pubDate: i.pubDate,
             source: feed.title,
-            image_url: ensureSecureUrl(i.enclosure?.url || null)
+            image_url: ensureSecureUrl(i.enclosure?.url || extractImageUrl(i['content:encoded'] || i.description || i.content || i.contentSnippet || ''))
           }));
           articles = articles.concat(items);
         } catch (e) {
@@ -433,7 +456,7 @@ async function loadCategory(res, feedUrl, limit) {
       link: i.link,
       pubDate: i.pubDate,
       source: feed.title,
-      image_url: ensureSecureUrl(i.enclosure?.url || null)
+      image_url: ensureSecureUrl(i.enclosure?.url || extractImageUrl(i['content:encoded'] || i.description || i.content || i.contentSnippet || ''))
     }));
     res.json(items);
   } catch (err) {
