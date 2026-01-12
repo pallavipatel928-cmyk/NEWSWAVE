@@ -233,11 +233,11 @@ app.get("/api/news", async (req, res) => {
         const feed = await parser.parseURL(url);
         const items = feed.items.slice(0, 80).map(i => ({
           title: i.title,
-          summary: i.contentSnippet || "",
-          link: i.link,
-          pubDate: i.pubDate,
-          source: feed.title,
-          image_url: ensureSecureUrl(i.enclosure?.url || extractImageUrl(i['content:encoded'] || i.description || i.content || i.contentSnippet || ''))
+          summary: i.contentSnippet || i['content:encoded'] || i.content || i.description || '', 
+          link: i.link || i.guid,
+          pubDate: i.pubDate || i.isoDate,
+          source: feed.title || 'Unknown Source',
+          image_url: ensureSecureUrl(i.enclosure?.url || extractImageUrl(i['content:encoded'] || i.content || i.description || i.contentSnippet || ''))
         }));
         articles = articles.concat(items);
       } catch (e) {
@@ -252,11 +252,11 @@ app.get("/api/news", async (req, res) => {
           const feed = await parser.parseURL(url);
           const items = feed.items.slice(0, 50).map(i => ({
             title: i.title,
-            summary: i.contentSnippet || "",
-            link: i.link,
-            pubDate: i.pubDate,
-            source: feed.title,
-            image_url: ensureSecureUrl(i.enclosure?.url || extractImageUrl(i['content:encoded'] || i.description || i.content || i.contentSnippet || ''))
+            summary: i.contentSnippet || i['content:encoded'] || i.content || i.description || '', 
+            link: i.link || i.guid,
+            pubDate: i.pubDate || i.isoDate,
+            source: feed.title || 'Unknown Source',
+            image_url: ensureSecureUrl(i.enclosure?.url || extractImageUrl(i['content:encoded'] || i.content || i.description || i.contentSnippet || ''))
           }));
           articles = articles.concat(items);
         } catch (e) {
