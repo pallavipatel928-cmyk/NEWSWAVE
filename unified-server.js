@@ -298,7 +298,9 @@ app.get("/api/andhra", async (req, res) => {
     const enhancedAndhraNews = andhraNews.length > 0 ? andhraNews.slice(0, 20) : allNews.slice(0, 10);
     const result = enhancedAndhraNews.map(item => ({
       ...item,
-      image_url: item.image_url || 'https://placehold.co/400x250?text=Andhra+News'
+      image_url: item.image_url || 'https://placehold.co/400x250?text=Andhra+News',
+      // Ensure summary has content
+      summary: item.summary || 'Latest news from Andhra Pradesh'
     }));
     
     res.json(result);
@@ -327,7 +329,9 @@ app.get("/api/telangana", async (req, res) => {
     const enhancedTelanganaNews = telanganaNews.length > 0 ? telanganaNews.slice(0, 20) : allNews.slice(0, 10);
     const result = enhancedTelanganaNews.map(item => ({
       ...item,
-      image_url: item.image_url || 'https://placehold.co/400x250?text=Telangana+News'
+      image_url: item.image_url || 'https://placehold.co/400x250?text=Telangana+News',
+      // Ensure summary has content
+      summary: item.summary || 'Latest news from Telangana'
     }));
     
     res.json(result);
@@ -492,13 +496,13 @@ app.get("/api/telugu", async (req, res) => {
     );
     
     // Enhance image URLs for filtered news
-    const enhancedTeluguNews = teluguNews.map(item => ({
+    const enhancedTeluguNews = teluguNews.length > 0 ? teluguNews.slice(0, 20) : allNews.slice(0, 10);
+    const result = enhancedTeluguNews.map(item => ({
       ...item,
-      image_url: item.image_url || 'https://placehold.co/400x250?text=Regional+News'
+      image_url: item.image_url || 'https://placehold.co/400x250?text=Regional+News',
+      // Ensure summary has content
+      summary: item.summary || 'Latest regional news'
     }));
-    
-    // Return filtered Telugu news or first 10 if no specific Telugu news found
-    const result = teluguNews.length > 0 ? teluguNews.slice(0, 20) : allNews.slice(0, 10);
     res.json(result);
   } catch (err) {
     console.log("Telugu API error:", err);
