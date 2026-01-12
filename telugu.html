@@ -28,25 +28,50 @@
   </footer>
 
   <script>
+    // Helper function to open articles
+    function openArticle(article) {
+      const articleId = encodeURIComponent(article.link || Math.random().toString(36).substring(7));
+      window.location.href = `article.html?id=${articleId}&category=telugu`;
+    }
+
     async function loadCategory() {
       try {
-        let res = await fetch("http://localhost:3000/api/news");
+        let res = await fetch("/api/news");
         let data = await res.json();
         let container = document.getElementById("news-list");
         container.innerHTML = "";
-        data.forEach(article => {
+
+        // Filter for Telugu/Andhra related news
+        const teluguNews = data.filter(article => 
+          article.title.toLowerCase().includes('telugu') || 
+          article.title.toLowerCase().includes('andhra') || 
+          article.title.toLowerCase().includes('hyderabad') || 
+          article.title.toLowerCase().includes('amaravati') ||
+          article.summary.toLowerCase().includes('telugu') ||
+          article.summary.toLowerCase().includes('andhra')
+        );
+
+        // If no specific Telugu news, show general news
+        const newsToShow = teluguNews.length > 0 ? teluguNews : data.slice(0, 20);
+
+        if (newsToShow.length === 0) {
+          container.innerHTML = "<p>⚠️ No తెలుగు news available at the moment.</p>";
+          return;
+        }
+
+        newsToShow.forEach(article => {
           let div = document.createElement("div");
           div.className = "news-card";
           div.innerHTML = `
-            <h3><a href="review-single.html?id=${article.id}">${article.title}</a></h3>
-            <p><em>${article.source || "Unknown Source"}</em> — ${new Date(article.created_at).toLocaleString()}</p>
+            <h3><a href="#" onclick="openArticle(${JSON.stringify(article)}); return false;">${article.title}</a></h3>
+            <p><em>${article.source || "Unknown Source"}</em> — ${new Date(article.pubDate).toLocaleString()}</p>
             <p>${article.summary || ""}</p>
           `;
           container.appendChild(div);
         });
       } catch (err) {
         console.error("Error loading తెలుగు news:", err);
-        document.getElementById("news-list").innerText = "⚠️ Failed to load news.";
+        document.getElementById("news-list").innerHTML = "<p>⚠️ Failed to load news. Please try again later.</p>";
       }
     }
     window.onload = loadCategory;
