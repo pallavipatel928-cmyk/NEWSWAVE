@@ -462,11 +462,19 @@ app.get("/api/telugu", async (req, res) => {
       item.title.toLowerCase().includes('visakhapatnam') ||
       item.title.toLowerCase().includes('guntur') ||
       item.title.toLowerCase().includes('nellore') ||
+      item.title.toLowerCase().includes('telangana') ||
       item.summary.toLowerCase().includes('telugu') ||
       item.summary.toLowerCase().includes('andhra') ||
       item.summary.toLowerCase().includes('hyderabad') ||
-      item.summary.toLowerCase().includes('amaravati')
+      item.summary.toLowerCase().includes('amaravati') ||
+      item.summary.toLowerCase().includes('telangana')
     );
+    
+    // Enhance image URLs for filtered news
+    const enhancedTeluguNews = teluguNews.map(item => ({
+      ...item,
+      image_url: item.image_url || 'https://placehold.co/400x250?text=Regional+News'
+    }));
     
     // Return filtered Telugu news or first 10 if no specific Telugu news found
     const result = teluguNews.length > 0 ? teluguNews.slice(0, 20) : allNews.slice(0, 10);
