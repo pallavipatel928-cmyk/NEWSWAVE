@@ -283,8 +283,13 @@ app.get("/api/andhra", async (req, res) => {
     // Filter for Andhra Pradesh news using our helper function
     const andhraNews = filterByCategory(allNews, 'Andhra Pradesh');
     
-    // Return filtered Andhra news or first 10 if no specific Andhra news found
-    const result = andhraNews.length > 0 ? andhraNews.slice(0, 20) : allNews.slice(0, 10);
+    // Enhance image URLs for filtered news
+    const enhancedAndhraNews = andhraNews.length > 0 ? andhraNews.slice(0, 20) : allNews.slice(0, 10);
+    const result = enhancedAndhraNews.map(item => ({
+      ...item,
+      image_url: item.image_url || 'https://placehold.co/400x250?text=Andhra+News'
+    }));
+    
     res.json(result);
   } catch (err) {
     console.log("Andhra API error:", err);
@@ -307,8 +312,13 @@ app.get("/api/telangana", async (req, res) => {
     // Filter for Telangana news using our helper function
     const telanganaNews = filterByCategory(allNews, 'Telangana State');
     
-    // Return filtered Telangana news or first 10 if no specific Telangana news found
-    const result = telanganaNews.length > 0 ? telanganaNews.slice(0, 20) : allNews.slice(0, 10);
+    // Enhance image URLs for filtered news
+    const enhancedTelanganaNews = telanganaNews.length > 0 ? telanganaNews.slice(0, 20) : allNews.slice(0, 10);
+    const result = enhancedTelanganaNews.map(item => ({
+      ...item,
+      image_url: item.image_url || 'https://placehold.co/400x250?text=Telangana+News'
+    }));
+    
     res.json(result);
   } catch (err) {
     console.log("Telangana API error:", err);
