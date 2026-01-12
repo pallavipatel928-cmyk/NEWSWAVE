@@ -98,7 +98,7 @@ async function loadTelangana() {
 
     container.innerHTML = allItems.slice(0,25).map(n => `
       <div class="news-card">
-        ${n.image_url ? `<img src="${n.image_url}" alt="Telangana News">` : ""}
+        ${n.image_url ? `<img src="${n.image_url}" alt="Telangana News" onerror="this.onerror=null;this.src='https://placehold.co/350x200?text=Telangana+News';">` : `<img src="https://placehold.co/350x200?text=Telangana+News" />`}
         <div class="info">
           <h3><a href="#" onclick="openArticle('${encodeURIComponent(n.link || '')}', 'telangana', '${encodeURIComponent(n.title || '')}'); return false;">${n.title}</a></h3>
           <p>${(n.summary || "").replace(/(<([^>]+)>)/gi, "").slice(0,120)}...</p>

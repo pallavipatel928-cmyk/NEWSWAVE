@@ -98,7 +98,7 @@
 
     container.innerHTML = allItems.slice(0,25).map(n => `
       <div class="news-card">
-        ${n.image_url ? `<img src="${n.image_url}" alt="Andhra News">` : ""}
+        ${n.image_url ? `<img src="${n.image_url}" alt="Andhra News" onerror="this.onerror=null;this.src='https://placehold.co/350x200?text=Andhra+News';">` : `<img src="https://placehold.co/350x200?text=Andhra+News" />`}
         <div class="info">
           <h3><a href="#" onclick="openArticle('${encodeURIComponent(n.link || '')}', 'andhra', '${encodeURIComponent(n.title || '')}'); return false;">${n.title}</a></h3>
           <p>${(n.summary || "").replace(/(<([^>]+)>)/gi, "").slice(0,120)}...</p>
