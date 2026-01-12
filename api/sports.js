@@ -15,14 +15,18 @@ function extractImageUrl(content) {
   const match = content.match(imgRegex);
   
   if (match) {
-    return match[1];
+    const imageUrl = match[1];
+    // Ensure HTTPS for secure content
+    return imageUrl.startsWith('http://') ? imageUrl.replace(/^http:\/\//, 'https://') : imageUrl;
   }
   
   // Look for common image URLs in text
   const urlRegex = /(https?:\/\/[^\s]*?\.(?:jpg|jpeg|png|gif|webp))(?:[\?\s]|$)/i;
   const urlMatch = content.match(urlRegex);
   
-  return urlMatch ? urlMatch[1] : "https://placehold.co/600x400?text=Sports+News";
+  const extractedUrl = urlMatch ? urlMatch[1] : "https://placehold.co/600x400?text=Sports+News";
+  // Ensure HTTPS for secure content
+  return extractedUrl.startsWith('http://') ? extractedUrl.replace(/^http:\/\//, 'https://') : extractedUrl;
 }
 
 async function loadCategory(res, feedUrl, limit) {

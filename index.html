@@ -123,10 +123,21 @@ async function fetchJSON(url) {
   }
 }
 
+function ensureSecureUrl(url) {
+  if (!url) return url;
+  
+  // Convert HTTP to HTTPS to avoid mixed content issues
+  if (typeof url === 'string' && url.startsWith('http://')) {
+    return url.replace(/^http:\/\//, 'https://');
+  }
+  return url;
+}
+
 function newsCard(a) {
+  const secureImageUrl = ensureSecureUrl(a.image_url);
   return `
     <div class="news-card" onclick='openArticle(${JSON.stringify(a)})'>
-      ${a.image_url ? `<img src="${a.image_url}" />` : ""}
+      ${secureImageUrl ? `<img src="${secureImageUrl}" onerror="this.onerror=null;this.src='https://placehold.co/350x200?text=News+Image';" />` : `<img src="https://placehold.co/350x200?text=News+Image" />`}
       <h3 style="font-size:16px;margin:8px 0;">${a.title}</h3>
       <p style="font-size:13px;color:#444;">${a.summary || ""}</p>
       <small style="color:#666;">${a.source} — ${new Date(a.pubDate).toLocaleString()}</small>
@@ -145,7 +156,9 @@ async function loadNews() {
 
   // Lead story
   const lead = data[0];
-  document.getElementById("lead-img").src = lead.image_url || "";
+  const leadImgElement = document.getElementById("lead-img");
+  leadImgElement.src = ensureSecureUrl(lead.image_url) || "";
+  leadImgElement.onerror = function() { this.onerror=null; this.src='https://placehold.co/600x300?text=Lead+News+Image'; };
   document.getElementById("lead-title").innerHTML = lead.title;
   document.getElementById("lead-summary").innerText = lead.summary || "";
   document.getElementById("lead-meta").innerText =

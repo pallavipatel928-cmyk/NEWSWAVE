@@ -13,6 +13,24 @@ import path from "path";
 import { fileURLToPath } from "url";
 import langService from "./lang-service.js";
 
+// Set up server configuration for network compatibility
+const NETWORK_CONFIG = {
+  ALLOWED_ORIGINS: [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:3001',
+    'http://127.0.0.1:3001',
+    'http://localhost:8080',
+    'http://127.0.0.1:8080',
+    'http://localhost:5173', // Vite default
+    'http://127.0.0.1:5173',
+    'https://*.vercel.app', // Vercel deployments
+    'https://newswave-*.vercel.app'
+  ],
+  MAX_AGE: 86400, // 24 hours
+  CREDENTIALS: true
+};
+
 // Get current directory for static file serving
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,10 +42,36 @@ const app = express();
 
 // Enable CORS and JSON parsing
 app.use(express.json());
-app.use(cors({
-  origin: '*', // Allow all origins
-  credentials: true
-}));
+
+// Configure CORS with specific origins for network compatibility
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Check if the origin is in our allowed list
+    if (NETWORK_CONFIG.ALLOWED_ORIGINS.some(allowed => {
+      if (allowed.includes('*')) {
+        // Handle wildcard domains like 'https://*.vercel.app'
+        const parts = allowed.split('*');
+        const regex = new RegExp('^' + parts[0].replace(/\./g, '\.') + '.*' + parts[1].replace(/\./g, '\.') + '$');
+        return regex.test(origin);
+      }
+      return origin === allowed;
+    })) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: NETWORK_CONFIG.CREDENTIALS,
+  optionsSuccessStatus: 200,
+  maxAge: NETWORK_CONFIG.MAX_AGE,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+};
+
+app.use(cors(corsOptions));
 
 // Additional CORS headers for all responses
 app.use((req, res, next) => {
@@ -199,7 +243,7 @@ app.get("/api/news", async (req, res) => {
 // =======================================
 app.get("/api/andhra", async (req, res) => {
   try {
-    const response = await fetch('http://localhost:3000/api/news');
+    const response = await fetch(`${req.protocol}://${req.get('host')}/api/news`);
     const allNews = await response.json();
     
     // Filter for Andhra Pradesh news using our helper function
@@ -223,7 +267,7 @@ app.get("/api/andhra", async (req, res) => {
 
 app.get("/api/telangana", async (req, res) => {
   try {
-    const response = await fetch('http://localhost:3000/api/news');
+    const response = await fetch(`${req.protocol}://${req.get('host')}/api/news`);
     const allNews = await response.json();
     
     // Filter for Telangana news using our helper function
@@ -250,7 +294,7 @@ app.get("/api/telangana", async (req, res) => {
 // =======================================
 app.get("/api/politics", async (req, res) => {
   try {
-    const response = await fetch('http://localhost:3000/api/news');
+    const response = await fetch(`${req.protocol}://${req.get('host')}/api/news`);
     const allNews = await response.json();
     
     // Filter for political news
@@ -331,7 +375,7 @@ app.get("/api/business", async (req, res) => {
 
 app.get("/api/tech", async (req, res) => {
   try {
-    const response = await fetch('http://localhost:3000/api/news');
+    const response = await fetch(`${req.protocol}://${req.get('host')}/api/news`);
     const allNews = await response.json();
     
     // Filter for tech news
@@ -431,21 +475,47 @@ app.get("/api/videos", (req, res) => {
 });
 
 // =======================================
-// 5️⃣ HLS PROXY (fixes CORS + SSL)
+// 5️⃣ SECURE PROXY (handles CORS for external requests)
 // =======================================
 app.get("/proxy/hls", async (req, res) => {
   const target = req.query.url;
+  
+  // Security validation
   if (!target) return res.status(400).send("Missing URL");
+  
+  // Only allow trusted domains
+  const allowedDomains = ['youtube.com', 'googlevideo.com', 'ytimg.com'];
+  const urlObj = new URL(target);
+  if (!allowedDomains.some(domain => urlObj.hostname.includes(domain))) {
+    return res.status(403).send("Domain not allowed");
+  }
 
   try {
-    const upstream = await fetch(target);
+    const upstream = await fetch(target, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; NewsWave Proxy)',
+        'Referer': req.get('Referer') || '',
+        'Origin': req.get('Origin') || ''
+      }
+    });
+    
+    if (!upstream.ok) {
+      return res.status(upstream.status).send("Upstream request failed");
+    }
+    
     const data = await upstream.arrayBuffer();
-
-    res.setHeader("Content-Type", upstream.headers.get("content-type") || "application/vnd.apple.mpegurl");
+    
+    // Only forward safe headers
+    const safeHeaders = ['content-type', 'content-length', 'last-modified', 'etag'];
+    safeHeaders.forEach(header => {
+      const value = upstream.headers.get(header);
+      if (value) res.setHeader(header, value);
+    });
+    
     res.send(Buffer.from(data));
   } catch (err) {
-    console.error("HLS Error:", err);
-    res.status(502).send("Failed to load HLS stream");
+    console.error("Proxy Error:", err);
+    res.status(502).send("Failed to load resource");
   }
 });
 
