@@ -446,6 +446,44 @@ app.get("/api/tech", async (req, res) => {
   }
 });
 
+// API route for Telugu news
+app.get("/api/telugu", async (req, res) => {
+  try {
+    const response = await fetch(`${req.protocol}://${req.get('host')}/api/news`);
+    const allNews = await response.json();
+    
+    // Filter for Telugu/Andhra related news
+    const teluguNews = allNews.filter(item => 
+      item.title.toLowerCase().includes('telugu') || 
+      item.title.toLowerCase().includes('andhra') || 
+      item.title.toLowerCase().includes('hyderabad') || 
+      item.title.toLowerCase().includes('amaravati') ||
+      item.title.toLowerCase().includes('vijayawada') ||
+      item.title.toLowerCase().includes('visakhapatnam') ||
+      item.title.toLowerCase().includes('guntur') ||
+      item.title.toLowerCase().includes('nellore') ||
+      item.summary.toLowerCase().includes('telugu') ||
+      item.summary.toLowerCase().includes('andhra') ||
+      item.summary.toLowerCase().includes('hyderabad') ||
+      item.summary.toLowerCase().includes('amaravati')
+    );
+    
+    // Return filtered Telugu news or first 10 if no specific Telugu news found
+    const result = teluguNews.length > 0 ? teluguNews.slice(0, 20) : allNews.slice(0, 10);
+    res.json(result);
+  } catch (err) {
+    console.log("Telugu API error:", err);
+    // Send fallback static data if RSS feed fails
+    res.json([
+      {title: "తెలుగు వార్తలు 1", summary: "తెలుగు వార్తల నవీకరణలు", link: "#", pubDate: new Date().toISOString(), source: "News Service", image_url: "https://placehold.co/300x200?text=తెలుగు+వార్త"},
+      {title: "తెలుగు వార్తలు 2", summary: "మరిన్ని తెలుగు వార్తలు", link: "#", pubDate: new Date().toISOString(), source: "News Service", image_url: "https://placehold.co/300x200?text=తెలుగు+వార్త"},
+      {title: "తెలుగు వార్తలు 3", summary: "ఆంధ్ర ప్రదేశ్ నుండి తాజా వార్తలు", link: "#", pubDate: new Date().toISOString(), source: "News Service", image_url: "https://placehold.co/300x200?text=తెలుగు+వార్త"},
+      {title: "తెలుగు వార్తలు 4", summary: "తెలుగు జాతీయ వార్తలు", link: "#", pubDate: new Date().toISOString(), source: "News Service", image_url: "https://placehold.co/300x200?text=తెలుగు+వార్త"},
+      {title: "తెలుగు వార్తలు 5", summary: "హైదరాబాద్ నుండి తాజా వార్తలు", link: "#", pubDate: new Date().toISOString(), source: "News Service", image_url: "https://placehold.co/300x200?text=తెలుగు+వార్త"}
+    ]);
+  }
+});
+
 // Helper
 async function loadCategory(res, feedUrl, limit) {
   try {
