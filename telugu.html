@@ -63,6 +63,7 @@
           let div = document.createElement("div");
           div.className = "news-card";
           div.innerHTML = `
+            ${article.image_url ? `<img src="${article.image_url}" onerror="this.onerror=null;this.src='https://placehold.co/350x200?text=Telugu+News';" />` : `<img src="https://placehold.co/350x200?text=Telugu+News" />`}
             <h3><a href="#" onclick="openArticle(${JSON.stringify(article)}); return false;">${article.title}</a></h3>
             <p><em>${article.source || "Unknown Source"}</em> — ${new Date(article.pubDate).toLocaleString()}</p>
             <p>${article.summary || ""}</p>
