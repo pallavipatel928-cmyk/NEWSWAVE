@@ -66,14 +66,37 @@ export default async function handler(req, res) {
     for (const url of primaryFeeds) {
       try {
         const feed = await parser.parseURL(url);
-        const items = feed.items.slice(0, 80).map(i => ({
-          title: i.title,
-          summary: i.contentSnippet || i['content:encoded'] || i.content || i.description || '', 
-          link: i.link || i.guid,
-          pubDate: i.pubDate || i.isoDate,
-          source: feed.title || 'Unknown Source',
-          image_url: ensureSecureUrl(i.enclosure?.url || extractImageUrl(i['content:encoded'] || i.content || i.description || i.contentSnippet || ''))
-        }));
+        const items = feed.items.slice(0, 80).map(i => {
+          // Try multiple methods to get image URL
+          let imageUrl = i.enclosure?.url || extractImageUrl(i['content:encoded'] || i.content || i.description || i.contentSnippet || '');
+          
+          // If no image found, try parsing content:encoded for media content
+          if (!imageUrl && i['content:encoded']) {
+            const mediaRegex = /<media:thumbnail url=["']([^"']*)["']|<img[^>]+src=["']([^"']*)["']/i;
+            const mediaMatch = i['content:encoded'].match(mediaRegex);
+            if (mediaMatch) {
+              imageUrl = mediaMatch[1] || mediaMatch[2];
+            }
+          }
+          
+          // If still no image, try parsing description
+          if (!imageUrl && i.description) {
+            const descImgRegex = /<img[^>]+src=["']([^"']*)["']/i;
+            const descMatch = i.description.match(descImgRegex);
+            if (descMatch) {
+              imageUrl = descMatch[1];
+            }
+          }
+          
+          return {
+            title: i.title,
+            summary: i.contentSnippet || i['content:encoded'] || i.content || i.description || '', 
+            link: i.link || i.guid,
+            pubDate: i.pubDate || i.isoDate,
+            source: feed.title || 'Unknown Source',
+            image_url: ensureSecureUrl(imageUrl || 'https://placehold.co/400x250?text=Telugu+News+Image')
+          };
+        });
         articles = articles.concat(items);
       } catch (e) {
         console.warn("Primary feed failed:", url);
@@ -85,14 +108,37 @@ export default async function handler(req, res) {
       for (const url of fallbackFeeds) {
         try {
           const feed = await parser.parseURL(url);
-          const items = feed.items.slice(0, 50).map(i => ({
-            title: i.title,
-            summary: i.contentSnippet || i['content:encoded'] || i.content || i.description || '',
-            link: i.link || i.guid,
-            pubDate: i.pubDate || i.isoDate,
-            source: feed.title || 'Unknown Source',
-            image_url: ensureSecureUrl(i.enclosure?.url || extractImageUrl(i['content:encoded'] || i.content || i.description || i.contentSnippet || ''))
-          }));
+          const items = feed.items.slice(0, 50).map(i => {
+            // Try multiple methods to get image URL
+            let imageUrl = i.enclosure?.url || extractImageUrl(i['content:encoded'] || i.content || i.description || i.contentSnippet || '');
+            
+            // If no image found, try parsing content:encoded for media content
+            if (!imageUrl && i['content:encoded']) {
+              const mediaRegex = /<media:thumbnail url=["']([^"']*)["']|<img[^>]+src=["']([^"']*)["']/i;
+              const mediaMatch = i['content:encoded'].match(mediaRegex);
+              if (mediaMatch) {
+                imageUrl = mediaMatch[1] || mediaMatch[2];
+              }
+            }
+            
+            // If still no image, try parsing description
+            if (!imageUrl && i.description) {
+              const descImgRegex = /<img[^>]+src=["']([^"']*)["']/i;
+              const descMatch = i.description.match(descImgRegex);
+              if (descMatch) {
+                imageUrl = descMatch[1];
+              }
+            }
+            
+            return {
+              title: i.title,
+              summary: i.contentSnippet || i['content:encoded'] || i.content || i.description || '',
+              link: i.link || i.guid,
+              pubDate: i.pubDate || i.isoDate,
+              source: feed.title || 'Unknown Source',
+              image_url: ensureSecureUrl(imageUrl || 'https://placehold.co/400x250?text=Telugu+News+Image')
+            };
+          });
           articles = articles.concat(items);
         } catch (e) {
           console.warn("Fallback failed:", url);
