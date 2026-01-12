@@ -138,6 +138,17 @@ function extractImageUrl(content) {
     return imageUrl.startsWith('http://') ? imageUrl.replace(/^http:\/\//, 'https://') : imageUrl;
   }
   
+  // Look for media:thumbnail in content (common in RSS feeds)
+  const mediaRegex = /<media:thumbnail url=["']([^"']*)["']|<img[^>]+src=["']([^"']*)["']/i;
+  const mediaMatch = content.match(mediaRegex);
+  if (mediaMatch) {
+    const imageUrl = mediaMatch[1] || mediaMatch[2];
+    if (imageUrl) {
+      // Ensure HTTPS for secure content
+      return imageUrl.startsWith('http://') ? imageUrl.replace(/^http:\/\//, 'https://') : imageUrl;
+    }
+  }
+  
   // Look for common image URLs in text
   const urlRegex = /(https?:\/\/[^\s]*?\.(?:jpg|jpeg|png|gif|webp))(?:[\?\s]|$)/i;
   const urlMatch = content.match(urlRegex);
