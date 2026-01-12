@@ -1,0 +1,30 @@
+{
+  "name": "newswave-portal",
+  "version": "1.0.0",
+  "description": "A comprehensive news portal featuring real-time news from multiple categories with a unified frontend and backend server.",
+  "main": "unified-server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node unified-server.js",
+    "dev": "node unified-server.js"
+  },
+  "keywords": [
+    "news",
+    "portal",
+    "newspaper",
+    "epaper",
+    "rss",
+    "andhra",
+    "telangana"
+  ],
+  "author": "NewsWave",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "rss-parser": "^3.12.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

@@ -1,0 +1,104 @@
+<div class="topbar">
+  <div class="container row">
+    <div id="date"></div>
+    <div id="language-selector">
+      <select onchange="changeLanguage(this.value)">
+        <option value="en">English</option>
+        <option value="te">తెలుగు</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<header class="header">
+  <div class="container brand">
+    <div class="logo">NW</div>
+    <div>
+      <div style="font-weight:800;font-size:22px">NewsWave</div>
+    </div>
+    <div class="ad" style="margin-left:auto;min-width:300px">Ad 728×90</div>
+  </div>
+</header>
+
+<nav class="nav">
+  <div class="container">
+    <ul>
+      <li><a href="index.html">Latest</a></li>
+      <li><a href="andhra.html">Andhra</a></li>
+      <li><a href="telangana.html">Telangana</a></li>
+      <li><a href="politics.html">Politics</a></li>
+      <li><a href="movies.html">Movies</a></li>
+      <li><a href="business.html">Business</a></li>
+      <li><a href="tech.html">Tech</a></li>
+      <li><a href="photos.html">Photos</a></li>
+      <li><a href="epaper.html">Epaper</a></li>
+      <li><a href="reviews.html">Reviews</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="ticker">
+  <div class="container">
+    <div id="ticker-strip" class="strip">• Welcome to NewsWave</div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('date').textContent = new Date().toDateString();
+  
+  // Language switching functionality
+  let currentLanguage = localStorage.getItem('nw-language') || 'en';
+  
+  // Apply saved language preference
+  document.addEventListener('DOMContentLoaded', function() {
+    const langSelect = document.querySelector('#language-selector select');
+    if (langSelect) {
+      langSelect.value = currentLanguage;
+    }
+  });
+  
+  async function changeLanguage(lang) {
+    currentLanguage = lang;
+    localStorage.setItem('nw-language', lang);
+    
+    // Update navigation based on selected language
+    updateNavigationText(lang);
+    
+    // Reload page to apply language changes
+    location.reload();
+  }
+  
+  async function updateNavigationText(lang) {
+    try {
+      const response = await fetch(`/api/translations/${lang}`);
+      const translations = await response.json();
+      
+      if (translations.nav) {
+        // Update navigation links with error handling
+        try { updateNavLink('index.html', translations.nav.home || 'Home'); } catch(e) {}
+        try { updateNavLink('andhra.html', translations.nav.andhra || 'Andhra'); } catch(e) {}
+        try { updateNavLink('telangana.html', translations.nav.telangana || 'Telangana'); } catch(e) {}
+        try { updateNavLink('politics.html', translations.nav.politics || 'Politics'); } catch(e) {}
+        try { updateNavLink('movies.html', translations.nav.movies || 'Movies'); } catch(e) {}
+        try { updateNavLink('business.html', translations.nav.business || 'Business'); } catch(e) {}
+        try { updateNavLink('tech.html', translations.nav.tech || 'Tech'); } catch(e) {}
+        try { updateNavLink('photos.html', translations.nav.photos || 'Photos'); } catch(e) {}
+        try { updateNavLink('epaper.html', translations.nav.epaper || 'Epaper'); } catch(e) {}
+        try { updateNavLink('reviews.html', translations.nav.reviews || 'Reviews'); } catch(e) {}
+      }
+    } catch (error) {
+      console.error('Error updating navigation:', error);
+    }
+  }
+  
+  function updateNavLink(href, newText) {
+    try {
+      const link = document.querySelector(`nav ul li a[href="${href}"]`);
+      if (link) {
+        link.textContent = newText;
+      }
+    } catch (e) {
+      // Silently handle errors if link is not found
+    }
+  }
+</script>

@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NewsWave - Detailed Article</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="preload" href="style.css" as="style">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Article-specific styles */
+        .article-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .main-article {
+            margin-bottom: 40px;
+        }
+        
+        .featured-image {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            max-height: 500px;
+            object-fit: cover;
+        }
+        
+        .article-header {
+            margin-bottom: 20px;
+        }
+        
+        .article-title {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            line-height: 1.2;
+        }
+        
+        .article-meta {
+            color: #7f8c8d;
+            font-size: 1em;
+            margin-bottom: 15px;
+        }
+        
+        .article-content {
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #34495e;
+            margin-bottom: 30px;
+        }
+        
+        .article-content p {
+            margin-bottom: 15px;
+        }
+        
+        .related-news-section {
+            border-top: 2px solid #ecf0f1;
+            padding-top: 30px;
+        }
+        
+        .section-title {
+            font-size: 1.8em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .related-articles {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .related-article-card {
+            border: 1px solid #ecf0f1;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .related-article-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .related-article-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+        
+        .related-article-content {
+            padding: 15px;
+        }
+        
+        .related-article-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+        
+        .related-article-summary {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+        
+        .related-article-meta {
+            font-size: 0.8em;
+            color: #95a5a6;
+        }
+        
+        .back-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            transition: background 0.3s ease;
+        }
+        
+        .back-button:hover {
+            background: #2980b9;
+        }
+        
+        @media (max-width: 768px) {
+            .article-title {
+                font-size: 2em;
+            }
+            
+            .article-container {
+                padding: 15px;
+            }
+            
+            .related-articles {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="header"></div>
+    
+    <div class="article-container">
+        <a href="javascript:history.back()" class="back-button">← Back to News</a>
+        
+        <div class="main-article">
+            <img id="main-image" class="featured-image" src="" alt="Article Image">
+            <div class="article-header">
+                <h1 id="main-title" class="article-title"></h1>
+                <div id="main-meta" class="article-meta"></div>
+            </div>
+            <div id="main-content" class="article-content"></div>
+        </div>
+        
+        <div class="related-news-section">
+            <h2 class="section-title">Related News</h2>
+            <div id="related-articles" class="related-articles"></div>
+        </div>
+    </div>
+    
+    <div id="footer"></div>
+    
+    <script>
+        // Load header and footer
+        fetch("header.html").then(r => r.text()).then(h => document.getElementById("header").innerHTML = h);
+        fetch("footer.html").then(r => r.text()).then(h => document.getElementById("footer").innerHTML = h);
+        
+        // Get article ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const articleId = urlParams.get('id');
+        const category = urlParams.get('category') || 'latest';
+        
+        // Load the main article
+        async function loadArticle() {
+            if (!articleId) {
+                document.getElementById('main-title').textContent = 'Article Not Found';
+                document.getElementById('main-content').innerHTML = '<p>Invalid article ID. Please go back and select a valid article.</p>';
+                return;
+            }
+            
+            try {
+                let apiUrl;
+                switch(category) {
+                    case 'telangana':
+                        apiUrl = '/api/telangana'; // Updated for Vercel
+                        break;
+                    case 'andhra':
+                        apiUrl = '/api/andhra'; // Updated for Vercel
+                        break;
+                    case 'politics':
+                        apiUrl = '/api/politics'; // Updated for Vercel
+                        break;
+                    case 'movies':
+                        apiUrl = '/api/movies'; // Updated for Vercel
+                        break;
+                    case 'sports':
+                        apiUrl = '/api/sports'; // Updated for Vercel
+                        break;
+                    default:
+                        apiUrl = '/api/news'; // Updated for Vercel
+                }
+                
+                const response = await fetch(apiUrl);
+                const articles = await response.json();
+                
+                if (!Array.isArray(articles)) {
+                    throw new Error('Invalid response format');
+                }
+                
+                let article = null;
+                
+                // First, try to find the article in the current category
+                if (Array.isArray(articles)) {
+                    // If articleId looks like a URL, try to match by link
+                    if (articleId.startsWith('http')) {
+                        article = articles.find(a => a.link && a.link.includes(new URL(articleId).hostname));
+                        if (!article) {
+                            // If no match by hostname, try to find by any part of the URL
+                            article = articles.find(a => a.link && articleId.includes(a.link) || a.link && articleId.includes(decodeURIComponent(a.link)));
+                        }
+                    }
+                    
+                    // If not found by URL, try to find article by title match since links may not be available
+                    if (!article) {
+                        article = articles.find(a => a.title && a.title.toLowerCase().includes(decodeURIComponent(articleId).toLowerCase()));
+                    }
+                    
+                    // If not found by title, try to find by encoded title
+                    if (!article) {
+                        article = articles.find(a => a.title && a.title.toLowerCase().includes(articleId.toLowerCase()));
+                    }
+                    
+                    // If still not found, try to find by index (using articleId as index)
+                    if (!article) {
+                        const index = parseInt(articleId);
+                        if (!isNaN(index) && index >= 0 && index < articles.length) {
+                            article = articles[index];
+                        }
+                    }
+                    
+                    // If still not found, try to find by partial match of the title
+                    if (!article && articleId.length > 10 && !articleId.startsWith('http')) { // Only if articleId is likely to be a title fragment and not a URL
+                        article = articles.find(a => a.title && a.title.toLowerCase().includes(decodeURIComponent(articleId).substring(0, 30).toLowerCase()));
+                    }
+                    
+                    // If still not found, try loose matching with first few words of the title
+                    if (!article && !articleId.startsWith('http')) {
+                        try {
+                            const decodedId = decodeURIComponent(articleId).toLowerCase();
+                            const searchTerms = decodedId.split(' ').filter(term => term.length > 2).slice(0, 4); // Take first 4 meaningful words
+                            if (searchTerms.length > 0) {
+                                article = articles.find(a => {
+                                    if (!a.title) return false;
+                                    const lowerTitle = a.title.toLowerCase();
+                                    return searchTerms.every(term => lowerTitle.includes(term));
+                                });
+                            }
+                        } catch(e) {
+                            console.log('Error in loose matching:', e);
+                        }
+                    }
+                }
+                
+                // If not found in the current category, try to find it in other categories
+                if (!article) {
+                    // Try to load from other categories
+                    const categories = ['latest', 'telangana', 'andhra', 'politics', 'movies', 'sports', 'business', 'tech'];
+                    for (const cat of categories) {
+                        if (cat !== category) {
+                            try {
+                                let catApiUrl;
+                                switch(cat) {
+                                    case 'telangana':
+                                        catApiUrl = '/api/telangana'; // Updated for Vercel
+                                        break;
+                                    case 'andhra':
+                                        catApiUrl = '/api/andhra'; // Updated for Vercel
+                                        break;
+                                    case 'politics':
+                                        catApiUrl = '/api/politics'; // Updated for Vercel
+                                        break;
+                                    case 'movies':
+                                        catApiUrl = '/api/movies'; // Updated for Vercel
+                                        break;
+                                    case 'sports':
+                                        catApiUrl = '/api/sports'; // Updated for Vercel
+                                        break;
+                                    case 'business':
+                                        catApiUrl = '/api/business'; // Updated for Vercel
+                                        break;
+                                    case 'tech':
+                                        catApiUrl = '/api/tech'; // Updated for Vercel
+                                        break;
+                                    default:
+                                        catApiUrl = '/api/news'; // Updated for Vercel
+                                }
+                                
+                                const catResponse = await fetch(catApiUrl);
+                                const catArticles = await catResponse.json();
+                                
+                                if (Array.isArray(catArticles)) {
+                                    // If articleId looks like a URL, try to match by link
+                                    if (articleId.startsWith('http')) {
+                                        article = catArticles.find(a => a.link && a.link.includes(new URL(articleId).hostname));
+                                        if (!article) {
+                                            // If no match by hostname, try to find by any part of the URL
+                                            article = catArticles.find(a => a.link && articleId.includes(a.link) || a.link && articleId.includes(decodeURIComponent(a.link)));
+                                        }
+                                    }
+                                    
+                                    // If not found by URL, try to find by title match
+                                    if (!article) {
+                                        article = catArticles.find(a => a.title && a.title.toLowerCase().includes(decodeURIComponent(articleId).toLowerCase()));
+                                    }
+                                    
+                                    // If not found by title, try by encoded title
+                                    if (!article) {
+                                        article = catArticles.find(a => a.title && a.title.toLowerCase().includes(articleId.toLowerCase()));
+                                    }
+                                    
+                                    // If still not found, try by index
+                                    if (!article) {
+                                        const index = parseInt(articleId);
+                                        if (!isNaN(index) && index >= 0 && index < catArticles.length) {
+                                            article = catArticles[index];
+                                        }
+                                    }
+                                    
+                                    // If still not found, try loose word matching
+                                    if (!article && !articleId.startsWith('http')) {
+                                        const decodedId = decodeURIComponent(articleId).toLowerCase();
+                                        const searchTerms = decodedId.split(' ').filter(term => term.length > 2).slice(0, 4);
+                                        if (searchTerms.length > 0) {
+                                            article = catArticles.find(a => {
+                                                if (!a.title) return false;
+                                                const lowerTitle = a.title.toLowerCase();
+                                                return searchTerms.every(term => lowerTitle.includes(term));
+                                            });
+                                        }
+                                    }
+                                    
+                                    if (article) {
+                                        // Update the category to match where we found the article
+                                        category = cat;
+                                        break;
+                                    }
+                                }
+                            } catch (e) {
+                                console.log(`Error searching in category ${cat}:`, e);
+                            }
+                        }
+                    }
+                }
+                
+                if (!article) {
+                    // If we still can't find the article, try one last fallback with the main news API
+                    try {
+                        const fallbackResponse = await fetch('/api/news'); // Updated for Vercel
+                        const fallbackArticles = await fallbackResponse.json();
+                        
+                        if (Array.isArray(fallbackArticles)) {
+                            // If articleId looks like a URL, try to match by link
+                            if (articleId.startsWith('http')) {
+                                article = fallbackArticles.find(a => a.link && a.link.includes(new URL(articleId).hostname));
+                                if (!article) {
+                                    // If no match by hostname, try to find by any part of the URL
+                                    article = fallbackArticles.find(a => a.link && articleId.includes(a.link) || a.link && articleId.includes(decodeURIComponent(a.link)));
+                                }
+                            }
+                            
+                            // If not found by URL, try loose matching again with fallback articles
+                            if (!article) {
+                                const decodedId = decodeURIComponent(articleId).toLowerCase();
+                                const searchTerms = decodedId.split(' ').filter(term => term.length > 2).slice(0, 4);
+                                
+                                if (searchTerms.length > 0) {
+                                    article = fallbackArticles.find(a => {
+                                        if (!a.title) return false;
+                                        const lowerTitle = a.title.toLowerCase();
+                                        return searchTerms.every(term => lowerTitle.includes(term));
+                                    });
+                                }
+                            }
+                            
+                            // If still not found, try simple title matching
+                            if (!article) {
+                                const decodedId = decodeURIComponent(articleId).toLowerCase();
+                                article = fallbackArticles.find(a => a.title && a.title.toLowerCase().includes(decodedId.substring(0, 20).toLowerCase()));
+                            }
+                        }
+                    } catch (fallbackError) {
+                        console.log('Fallback search also failed:', fallbackError);
+                    }
+                    
+                    // Final check - if still no article found, try to create a basic article from the ID
+                    if (!article) {
+                        // Create a fallback article using the ID as title
+                        const decodedTitle = decodeURIComponent(articleId).replace(/\+/g, ' ');
+                        article = {
+                            title: decodedTitle,
+                            summary: 'We couldn\'t find the specific article you\'re looking for in our current feed, but here are some related news articles. This may occur when the article is no longer in the active feed.',
+                            source: 'NewsWave Portal',
+                            pubDate: new Date().toISOString(),
+                            image_url: 'https://placehold.co/800x400?text=News+Article'
+                        };
+                                            
+                        // Display the fallback article info
+                        document.getElementById('main-title').textContent = article.title;
+                        document.getElementById('main-meta').textContent = `By ${article.source} • ${new Date(article.pubDate).toLocaleString()}`;
+                        document.getElementById('main-image').src = article.image_url;
+                        document.getElementById('main-image').alt = article.title;
+                                            
+                        // Format content
+                        const contentElement = document.getElementById('main-content');
+                        const paragraphs = article.summary.split('\n');
+                        contentElement.innerHTML = paragraphs.map(p => `<p>${p.trim()}</p>`).join('');
+                                            
+                        // Load related articles
+                        try {
+                            const fallbackResponse = await fetch('/api/news'); // Updated for Vercel
+                            const fallbackArticles = await fallbackResponse.json();
+                                                
+                            if (Array.isArray(fallbackArticles)) {
+                                loadRelatedArticles(fallbackArticles, article);
+                            }
+                        } catch (e) {
+                            console.log('Could not load related articles:', e);
+                        }
+                                            
+                        return; // Exit early since we've displayed the fallback
+                    }
+                }
+                
+                // Display main article
+                document.getElementById('main-image').src = article.image_url || 'https://placehold.co/800x400?text=News+Image';
+                document.getElementById('main-image').alt = article.title;
+                document.getElementById('main-title').textContent = article.title;
+                document.getElementById('main-meta').textContent = `By ${article.source || 'News Source'} • ${new Date(article.pubDate).toLocaleString()}`;
+                
+                // Format content (using summary as content for now, in real scenario this would come from the full article)
+                const contentElement = document.getElementById('main-content');
+                const paragraphs = (article.summary || article.title).split('\n');
+                contentElement.innerHTML = paragraphs.map(p => `<p>${p.trim()}</p>`).join('');
+                
+                // Load related articles
+                loadRelatedArticles(articles, article);
+                
+            } catch (error) {
+                console.error('Error loading article:', error);
+                document.getElementById('main-title').textContent = 'Error Loading Article';
+                document.getElementById('main-content').innerHTML = '<p>There was an error loading the article. Please try again or go back to browse news.</p>';
+            }
+        }
+        
+        // Load related articles
+        function loadRelatedArticles(allArticles, currentArticle) {
+            const relatedContainer = document.getElementById('related-articles');
+            
+            // Filter out the current article and get up to 6 related articles
+            const currentArticleTitle = currentArticle.title.toLowerCase();
+            const relatedArticles = allArticles
+                .filter(a => a.title && a.title.toLowerCase() !== currentArticleTitle)
+                .slice(0, 6);
+            
+            if (relatedArticles.length === 0) {
+                relatedContainer.innerHTML = '<p>No related articles available at this time.</p>';
+                return;
+            }
+            
+            relatedContainer.innerHTML = relatedArticles.map(article => `
+                <div class="related-article-card">
+                    <img src="${article.image_url || 'https://placehold.co/300x180?text=News'}" 
+                         alt="${article.title}" 
+                         class="related-article-image"
+                         onclick="openArticle('${encodeURIComponent(article.link || '')}', '${category}', '${encodeURIComponent(article.title || '')}')">
+                    <div class="related-article-content">
+                        <h3 class="related-article-title" onclick="openArticle('${encodeURIComponent(article.link || '')}', '${category}', '${encodeURIComponent(article.title || '')}')">
+                            ${article.title}
+                        </h3>
+                        <p class="related-article-summary">${(article.summary || '').substring(0, 100)}...</p>
+                        <div class="related-article-meta">${new Date(article.pubDate).toLocaleDateString()}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Function to open article in new page
+        function openArticle(link, cat, title) {
+            // Use the title as the article ID since links may not be reliable
+            // If we have a title, use it as the ID; otherwise, use the link
+            let articleId;
+            if (title) {
+                articleId = encodeURIComponent(title.substring(0, 100));
+            } else if (link && link.startsWith('http')) {
+                // If we have a link that's a URL, encode it properly
+                articleId = encodeURIComponent(link.substring(0, 200));
+            } else {
+                // Fallback to whatever we have
+                articleId = encodeURIComponent((link || '').substring(0, 100));
+            }
+            window.location.href = `article.html?id=${articleId}&category=${cat}`;
+        }
+        
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', loadArticle);
+    </script>
+</body>
+</html>

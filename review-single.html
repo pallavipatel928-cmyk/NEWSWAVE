@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NewsWave — Article</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="header"></div>
+  <script>fetch("header.html").then(r=>r.text()).then(h=>document.getElementById("header").innerHTML=h)</script>
+
+  <main class="container" style="margin:18px auto;max-width:800px">
+    <article id="article" class="card" style="padding:20px">Loading article...</article>
+
+    <div class="share">
+      <p><b>Share:</b>
+        <a href="#" onclick="shareOn('twitter')">X</a> |
+        <a href="#" onclick="shareOn('facebook')">Facebook</a> |
+        <a href="#" onclick="shareOn('whatsapp')">WhatsApp</a>
+      </p>
+    </div>
+
+    <div id="related"></div>
+
+    <h3>Comments</h3>
+    <div id="comments"></div>
+    <form onsubmit="postComment(event)">
+      <input id="cname" placeholder="Name" required />
+      <input id="cmsg" placeholder="Comment" required />
+      <button>Post</button>
+    </form>
+  </main>
+
+  <div id="footer"></div>
+  <script>fetch("footer.html").then(r=>r.text()).then(h=>document.getElementById("footer").innerHTML=h)</script>
+
+<script>
+const id = new URLSearchParams(window.location.search).get("id");
+
+async function loadArticle(){
+  let res = await fetch(`/api/articles/${id}`);
+  let a = await res.json();
+  let el = document.getElementById("article");
+  el.innerHTML = `
+    <h1>${a.title}</h1>
+    <div class="meta">${new Date(a.created_at).toLocaleString()} · ${a.author||'Staff'}</div>
+    ${a.image_url?`<img src="${a.image_url}" class="thumb" style="margin:16px 0">`:''}
+    <div>${a.body||a.summary||''}</div>
+  `;
+  loadRelated(a.category);
+  renderComments(id);
+}
+
+function shareOn(p){
+  const url = window.location.href, t = document.title;
+  let u="";
+  if(p==="twitter") u=`https://twitter.com/intent/tweet?url=${url}&text=${t}`;
+  if(p==="facebook") u=`https://www.facebook.com/sharer/sharer.php?u=${url}`;
+  if(p==="whatsapp") u=`https://wa.me/?text=${t} ${url}`;
+  window.open(u,"_blank");
+}
+
+async function loadRelated(cat){
+  let res = await fetch(`/api/category/${cat}`);
+  let d = await res.json();
+  let el = document.getElementById("related");
+  el.innerHTML="<h3>Related Stories</h3>";
+  d.slice(0,4).forEach(a=>{
+    el.innerHTML += `<p><a href="review-single.html?id=${a.id}">${a.title}</a></p>`;
+  });
+}
+
+// comments in localStorage
+function getC(){return JSON.parse(localStorage.getItem("c:"+id)||"[]")}
+function saveC(arr){localStorage.setItem("c:"+id,JSON.stringify(arr))}
+function renderComments(){document.getElementById("comments").innerHTML=getC().map(c=>`<p><b>${c.n}</b>: ${c.m}</p>`).join("")}
+function postComment(e){
+  e.preventDefault();
+  let arr=getC();
+  arr.push({n:document.getElementById("cname").value,m:document.getElementById("cmsg").value});
+  saveC(arr); renderComments(); e.target.reset();
+}
+
+loadArticle();
+</script>
+</body>
+</html>

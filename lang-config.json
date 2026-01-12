@@ -1,0 +1,83 @@
+{
+  "languages": {
+    "en": {
+      "name": "English",
+      "direction": "ltr"
+    },
+    "te": {
+      "name": "తెలుగు",
+      "direction": "ltr"
+    }
+  },
+  "default": "en",
+  "translations": {
+    "en": {
+      "nav": {
+        "home": "Home",
+        "telangana": "Telangana",
+        "andhra": "Andhra",
+        "politics": "Politics",
+        "movies": "Movies",
+        "business": "Business",
+        "tech": "Tech",
+        "sports": "Sports",
+        "photos": "Photos",
+        "epaper": "Epaper",
+        "reviews": "Reviews",
+        "contact": "Contact",
+        "advertise": "Advertise",
+        "grievance": "Grievance"
+      },
+      "common": {
+        "loading": "Loading...",
+        "no_news": "No news available",
+        "read_more": "Read More",
+        "related_news": "Related News",
+        "latest_news": "Latest News",
+        "trending": "Trending",
+        "most_read": "Most Read",
+        "top_headlines": "Top Headlines"
+      },
+      "footer": {
+        "about": "About",
+        "disclaimer": "Disclaimer",
+        "privacy": "Privacy Policy",
+        "terms": "Terms of Service"
+      }
+    },
+    "te": {
+      "nav": {
+        "home": "హోమ్",
+        "telangana": "తెలంగాణ",
+        "andhra": "ఆంధ్ర",
+        "politics": "రాజకీయాలు",
+        "movies": "సినిమాలు",
+        "business": "వ్యాపారం",
+        "tech": "సాంకేతికత",
+        "sports": "క్రీడలు",
+        "photos": "ఫోటోలు",
+        "epaper": "ఈ-పేపర్",
+        "reviews": "సమీక్షలు",
+        "contact": "సంప్రదించండి",
+        "advertise": "ప్రచారం",
+        "grievance": "ఫిర్యాదు"
+      },
+      "common": {
+        "loading": "లోడ్ అవుతోంది...",
+        "no_news": "సరస్సు వార్తలు లేవు",
+        "read_more": "మరిన్ని చదవండి",
+        "related_news": "సంబంధిత వార్తలు",
+        "latest_news": "తాజా వార్తలు",
+        "trending": "ట్రెండింగ్",
+        "most_read": "ఎక్కువగా చదివినవి",
+        "top_headlines": "ప్రధాన వార్తలు"
+      },
+      "footer": {
+        "about": "గురించి",
+        "disclaimer": "నిరాకరణ",
+        "privacy": "గౌరవ విధానం",
+        "terms": "సేవా నిబంధనలు"
+      }
+    }
+  }
+}

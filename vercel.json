@@ -1,0 +1,13 @@
+{
+  "rewrites": [
+    {"source": "/api/news", "destination": "/api/news"},
+    {"source": "/api/andhra", "destination": "/api/andhra"},
+    {"source": "/api/telangana", "destination": "/api/telangana"},
+    {"source": "/api/politics", "destination": "/api/politics"},
+    {"source": "/api/movies", "destination": "/api/movies"},
+    {"source": "/api/sports", "destination": "/api/sports"},
+    {"source": "/api/business", "destination": "/api/business"},
+    {"source": "/api/tech", "destination": "/api/tech"},
+    {"source": "/api/submit-news", "destination": "/api/submit-news"}
+  ]
+}

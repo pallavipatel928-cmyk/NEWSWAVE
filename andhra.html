@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Andhra News — NewsWave</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <link rel="preload" href="style.css" as="style" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { background:#f9fafb; font-family:Arial,sans-serif; color:#111; }
+    h2 { margin:16px 0; }
+    .news-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+      gap:20px;
+      margin-top:20px;
+    }
+    .news-card {
+      background:#fff;
+      border-radius:10px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.08);
+      overflow:hidden;
+      transition:transform 0.2s;
+    }
+    .news-card:hover {
+      transform:scale(1.02);
+      box-shadow:0 4px 14px rgba(0,0,0,0.15);
+    }
+    .news-card img {
+      width:100%;
+      height:200px;
+      object-fit:cover;
+    }
+    .news-card .info { padding:12px 14px; }
+    .news-card h3 {
+      font-size:17px;
+      color:#b91c1c;
+      margin:0 0 6px;
+    }
+    .news-card p {
+      font-size:14px;
+      color:#374151;
+      margin-bottom:8px;
+    }
+    .news-card small {
+      color:#6b7280;
+      font-size:12px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header -->
+  <div id="header"></div>
+  <script>
+    fetch("header.html").then(r=>r.text()).then(h=>document.getElementById("header").innerHTML=h);
+  </script>
+
+  <main class="container" style="margin:20px 0;">
+    <h2>🌾 Andhra Pradesh News</h2>
+    <p style="color:#777;font-size:14px;">Latest political, regional, and development updates from Andhra Pradesh.</p>
+
+    <div id="andhra-grid" class="news-grid">
+      <p>Loading Andhra news...</p>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <div id="footer"></div>
+  <script>
+    fetch("footer.html").then(r=>r.text()).then(h=>document.getElementById("footer").innerHTML=h);
+  </script>
+
+  <!-- 🔥 Andhra Feed Logic -->
+  <script>
+  async function loadAndhra() {
+  const container = document.getElementById("andhra-grid");
+  
+  try {
+    // Fetch Andhra news from the unified server API
+    const response = await fetch("/api/andhra");
+    const data = await response.json();
+    
+    // Check if the response is successful and contains data
+    if (!response.ok || !data || (data.error && typeof data === 'object') || (Array.isArray(data) && data.length === 0)) {
+      container.innerHTML = `<p style="color:#888">📰 No new Andhra updates yet — refreshing soon.</p>`;
+      return;
+    }
+    
+    // Make sure data is an array before using slice
+    const allItems = Array.isArray(data) ? data : [];
+    
+    if (allItems.length === 0) {
+      container.innerHTML = `<p style="color:#888">📰 No new Andhra updates yet — refreshing soon.</p>`;
+      return;
+    }
+
+    container.innerHTML = allItems.slice(0,25).map(n => `
+      <div class="news-card">
+        ${n.image_url ? `<img src="${n.image_url}" alt="Andhra News">` : ""}
+        <div class="info">
+          <h3><a href="#" onclick="openArticle('${encodeURIComponent(n.link || '')}', 'andhra', '${encodeURIComponent(n.title || '')}'); return false;">${n.title}</a></h3>
+          <p>${(n.summary || "").replace(/(<([^>]+)>)/gi, "").slice(0,120)}...</p>
+          <small>${new Date(n.pubDate).toLocaleString()} — ${n.source || "Andhra News"}</small>
+        </div>
+      </div>
+    `).join("");
+  } catch (error) {
+    console.error("Error fetching Andhra news:", error);
+    container.innerHTML = `<p style="color:#888">⚠️ Failed to load Andhra news — please refresh.</p>`;
+  }
+}
+
+function openArticle(link, category, title) {
+  // Use the title as the article ID since links may not be reliable
+  const articleId = title ? encodeURIComponent(title.substring(0, 50)) : encodeURIComponent(link);
+  window.location.href = `article.html?id=${articleId}&category=${category}`;
+}
+
+loadAndhra();
+setInterval(loadAndhra, 60000);
+</script>

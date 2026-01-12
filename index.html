@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NewsWave — Home</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <link rel="preload" href="style.css" as="style">
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    .news-card {
+      background:#fff;
+      padding:10px;
+      border-radius:8px;
+      border:1px solid #ddd;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .news-card:hover {
+      transform: scale(1.02);
+    }
+    .news-card img {
+      width:100%;
+      height:180px;
+      object-fit:cover;
+      border-radius:6px;
+    }
+  </style>
+
+</head>
+
+<body>
+  <!-- Header -->
+  <div id="header"></div>
+  <script>
+    fetch("header.html")
+      .then(r => r.text())
+      .then(h => document.getElementById("header").innerHTML = h);
+  </script>
+
+  <main class="container" style="margin:18px 0">
+    <div class="grid" style="grid-template-columns:2fr 1fr;gap:18px">
+
+      <!-- LEFT COLUMN -->
+      <section>
+        <!-- Lead Story -->
+        <article id="lead" class="lead">
+          <img id="lead-img" class="hero" alt="">
+          <div class="pad">
+            <h1 class="title" id="lead-title" style="font-size:26px"></h1>
+            <div class="meta" id="lead-meta"></div>
+            <p class="summary" id="lead-summary"></p>
+          </div>
+        </article>
+
+        <!-- Latest Section -->
+        <div class="section-title"><h2>Latest News</h2></div>
+        <div id="latest-news" class="grid grid-3">Loading news...</div>
+
+        <div class="ad" style="height:250px;margin:16px 0">Ad 970×250</div>
+
+      </section>
+
+      <!-- RIGHT SIDEBAR -->
+      <aside class="sidebar">
+        <div class="ad skyscraper">Ad 160×600</div>
+
+        <div class="widget">
+          <div class="section-title"><h2>Trending</h2></div>
+          <ol id="trending" class="list-compact">Loading...</ol>
+        </div>
+
+        <div class="widget">
+          <div class="section-title"><h2>Most Read</h2></div>
+          <ol id="most-read" class="list-compact">Loading...</ol>
+        </div>
+
+        <div class="widget">
+          <div class="section-title"><h2>Top Headlines</h2></div>
+          <ol id="top-headlines" class="list-compact">Loading headlines...</ol>
+        </div>
+      </aside>
+
+    </div>
+
+    <div style="font-size:12px;color:#6b7280;margin-top:6px">
+      Updated: <span id="last-updated">—</span>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <div id="footer"></div>
+  <script>
+    fetch("footer.html").then(r=>r.text()).then(h=>document.getElementById("footer").innerHTML=h);
+  </script>
+
+
+<!-- ========================================= -->
+<!--   INTERNAL ARTICLE VIEWER SUPPORT         -->
+<!-- ========================================= -->
+<script>
+function openArticle(article) {
+  const articleId = encodeURIComponent(article.link || Math.random().toString(36).substring(7));
+  window.location.href = `article.html?id=${articleId}&category=latest`;
+}
+</script>
+
+
+<!-- ========================================= -->
+<!--          NEWS + VIDEO LOADING             -->
+<!-- ========================================= -->
+<script>
+const API = "";
+
+async function fetchJSON(url) {
+  try {
+    const r = await fetch(url);
+    return await r.json();
+  } catch (err) {
+    console.error(err);
+    return [];
+  }
+}
+
+function newsCard(a) {
+  return `
+    <div class="news-card" onclick='openArticle(${JSON.stringify(a)})'>
+      ${a.image_url ? `<img src="${a.image_url}" />` : ""}
+      <h3 style="font-size:16px;margin:8px 0;">${a.title}</h3>
+      <p style="font-size:13px;color:#444;">${a.summary || ""}</p>
+      <small style="color:#666;">${a.source} — ${new Date(a.pubDate).toLocaleString()}</small>
+    </div>
+  `;
+}
+
+async function loadNews() {
+  const data = await fetchJSON("/api/news");
+  const latest = document.getElementById("latest-news");
+
+  if (!data.length) {
+    latest.innerHTML = "<p>No news found.</p>";
+    return;
+  }
+
+  // Lead story
+  const lead = data[0];
+  document.getElementById("lead-img").src = lead.image_url || "";
+  document.getElementById("lead-title").innerHTML = lead.title;
+  document.getElementById("lead-summary").innerText = lead.summary || "";
+  document.getElementById("lead-meta").innerText =
+    `${lead.source} — ${new Date(lead.pubDate).toLocaleString()}`;
+  document.getElementById("lead-title").onclick = () => openArticle(lead);
+
+  // Latest grid
+  latest.innerHTML = data.slice(1).map(newsCard).join("");
+
+  // Trending / Most-read
+  document.getElementById("trending").innerHTML =
+    data.slice(1, 7).map(a=>`<li onclick='openArticle(${JSON.stringify(a)})'>${a.title}</li>`).join("");
+
+  document.getElementById("most-read").innerHTML =
+    data.slice(7, 14).map(a=>`<li onclick='openArticle(${JSON.stringify(a)})'>${a.title}</li>`).join("");
+
+  document.getElementById("last-updated").innerText =
+    new Date().toLocaleTimeString();
+}
+
+async function loadTopHeadlines() {
+  const data = await fetchJSON("/api/news");
+  const headlines = data.slice(0, 6); // Get top 6 headlines
+  
+  document.getElementById("top-headlines").innerHTML =
+    headlines.map((h, index) => `
+      <li style="margin-bottom:8px;">
+        <a href="#" onclick='openArticle(${JSON.stringify(h)})' style="text-decoration:none; color:inherit;">
+          <b>${index + 1}.</b> ${h.title.length > 80 ? h.title.substring(0, 80) + '...' : h.title}
+        </a>
+      </li>
+    `).join("");
+}
+
+window.onload = () => {
+  loadNews();
+  loadTopHeadlines();
+};
+</script>
+
+</body>
+</html>
