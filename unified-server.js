@@ -169,6 +169,14 @@ function ensureSecureUrl(url) {
   return url;
 }
 
+// Helper function to sanitize all image URLs in news items
+function sanitizeNewsImages(newsItems) {
+  return newsItems.map(item => ({
+    ...item,
+    image_url: ensureSecureUrl(item.image_url)
+  }));
+}
+
 // Helper function to filter news by category
 function filterByCategory(articles, category) {
   switch(category.toLowerCase()) {
@@ -310,8 +318,11 @@ app.get("/api/news", async (req, res) => {
   
     // Sort newest first
     unique.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
-  
-    res.json(unique.slice(0, 200));  // Return 200+ items
+        
+    // Sanitize all image URLs to ensure HTTPS
+    const sanitizedUnique = sanitizeNewsImages(unique);
+        
+    res.json(sanitizedUnique.slice(0, 200));  // Return 200+ items
   
   } catch (err) {
     console.error("LATEST ERROR:", err);
