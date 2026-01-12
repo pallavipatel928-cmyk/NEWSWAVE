@@ -231,14 +231,32 @@ app.get("/api/news", async (req, res) => {
     for (const url of primaryFeeds) {
       try {
         const feed = await parser.parseURL(url);
-        const items = feed.items.slice(0, 80).map(i => ({
-          title: i.title,
-          summary: i.contentSnippet || i['content:encoded'] || i.content || i.description || '', 
-          link: i.link || i.guid,
-          pubDate: i.pubDate || i.isoDate,
-          source: feed.title || 'Unknown Source',
-          image_url: ensureSecureUrl(i.enclosure?.url || extractImageUrl(i['content:encoded'] || i.content || i.description || i.contentSnippet || ''))
-        }));
+        const items = feed.items.slice(0, 80).map(i => {
+          // Extract image with multiple fallback methods
+          let image_url = i.enclosure?.url || extractImageUrl(i['content:encoded'] || i.content || i.description || i.contentSnippet || '');
+          
+          // If no image found, try to generate from title or use placeholder
+          if (!image_url) {
+            // Try to create a meaningful image based on content
+            if (i.title.toLowerCase().includes('politics')) image_url = 'https://placehold.co/400x250?text=Politics+News';
+            else if (i.title.toLowerCase().includes('sports')) image_url = 'https://placehold.co/400x250?text=Sports+News';
+            else if (i.title.toLowerCase().includes('business')) image_url = 'https://placehold.co/400x250?text=Business+News';
+            else if (i.title.toLowerCase().includes('technology')) image_url = 'https://placehold.co/400x250?text=Tech+News';
+            else if (i.title.toLowerCase().includes('entertainment')) image_url = 'https://placehold.co/400x250?text=Entertainment+News';
+            else if (i.title.toLowerCase().includes('telangana') || i.title.toLowerCase().includes('hyderabad')) image_url = 'https://placehold.co/400x250?text=Telangana+News';
+            else if (i.title.toLowerCase().includes('andhra') || i.title.toLowerCase().includes('amaravati')) image_url = 'https://placehold.co/400x250?text=Andhra+News';
+            else image_url = 'https://placehold.co/400x250?text=Latest+News';
+          }
+          
+          return {
+            title: i.title,
+            summary: i.contentSnippet || i['content:encoded'] || i.content || i.description || '', 
+            link: i.link || i.guid,
+            pubDate: i.pubDate || i.isoDate,
+            source: feed.title || 'Unknown Source',
+            image_url: ensureSecureUrl(image_url)
+          };
+        });
         articles = articles.concat(items);
       } catch (e) {
         console.warn("Primary feed failed:", url);
@@ -250,14 +268,32 @@ app.get("/api/news", async (req, res) => {
       for (const url of fallbackFeeds) {
         try {
           const feed = await parser.parseURL(url);
-          const items = feed.items.slice(0, 50).map(i => ({
-            title: i.title,
-            summary: i.contentSnippet || i['content:encoded'] || i.content || i.description || '', 
-            link: i.link || i.guid,
-            pubDate: i.pubDate || i.isoDate,
-            source: feed.title || 'Unknown Source',
-            image_url: ensureSecureUrl(i.enclosure?.url || extractImageUrl(i['content:encoded'] || i.content || i.description || i.contentSnippet || ''))
-          }));
+          const items = feed.items.slice(0, 50).map(i => {
+            // Extract image with multiple fallback methods
+            let image_url = i.enclosure?.url || extractImageUrl(i['content:encoded'] || i.content || i.description || i.contentSnippet || '');
+            
+            // If no image found, try to generate from title or use placeholder
+            if (!image_url) {
+              // Try to create a meaningful image based on content
+              if (i.title.toLowerCase().includes('politics')) image_url = 'https://placehold.co/400x250?text=Politics+News';
+              else if (i.title.toLowerCase().includes('sports')) image_url = 'https://placehold.co/400x250?text=Sports+News';
+              else if (i.title.toLowerCase().includes('business')) image_url = 'https://placehold.co/400x250?text=Business+News';
+              else if (i.title.toLowerCase().includes('technology')) image_url = 'https://placehold.co/400x250?text=Tech+News';
+              else if (i.title.toLowerCase().includes('entertainment')) image_url = 'https://placehold.co/400x250?text=Entertainment+News';
+              else if (i.title.toLowerCase().includes('telangana') || i.title.toLowerCase().includes('hyderabad')) image_url = 'https://placehold.co/400x250?text=Telangana+News';
+              else if (i.title.toLowerCase().includes('andhra') || i.title.toLowerCase().includes('amaravati')) image_url = 'https://placehold.co/400x250?text=Andhra+News';
+              else image_url = 'https://placehold.co/400x250?text=Latest+News';
+            }
+            
+            return {
+              title: i.title,
+              summary: i.contentSnippet || i['content:encoded'] || i.content || i.description || '', 
+              link: i.link || i.guid,
+              pubDate: i.pubDate || i.isoDate,
+              source: feed.title || 'Unknown Source',
+              image_url: ensureSecureUrl(image_url)
+            };
+          });
           articles = articles.concat(items);
         } catch (e) {
           console.warn("Fallback failed:", url);

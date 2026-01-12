@@ -88,13 +88,25 @@ export default async function handler(req, res) {
             }
           }
           
+          // If no image found, try to generate from title or use category-specific placeholder
+          if (!imageUrl) {
+            if (i.title.toLowerCase().includes('politics')) imageUrl = 'https://placehold.co/400x250?text=Politics+News';
+            else if (i.title.toLowerCase().includes('sports')) imageUrl = 'https://placehold.co/400x250?text=Sports+News';
+            else if (i.title.toLowerCase().includes('business')) imageUrl = 'https://placehold.co/400x250?text=Business+News';
+            else if (i.title.toLowerCase().includes('technology')) imageUrl = 'https://placehold.co/400x250?text=Tech+News';
+            else if (i.title.toLowerCase().includes('entertainment')) imageUrl = 'https://placehold.co/400x250?text=Entertainment+News';
+            else if (i.title.toLowerCase().includes('telugu') || i.title.toLowerCase().includes('hyderabad')) imageUrl = 'https://placehold.co/400x250?text=Telugu+News';
+            else if (i.title.toLowerCase().includes('andhra') || i.title.toLowerCase().includes('amaravati')) imageUrl = 'https://placehold.co/400x250?text=Andhra+News';
+            else imageUrl = 'https://placehold.co/400x250?text=Regional+News';
+          }
+          
           return {
             title: i.title,
             summary: i.contentSnippet || i['content:encoded'] || i.content || i.description || '', 
             link: i.link || i.guid,
             pubDate: i.pubDate || i.isoDate,
             source: feed.title || 'Unknown Source',
-            image_url: ensureSecureUrl(imageUrl || 'https://placehold.co/400x250?text=Telugu+News+Image')
+            image_url: ensureSecureUrl(imageUrl)
           };
         });
         articles = articles.concat(items);
