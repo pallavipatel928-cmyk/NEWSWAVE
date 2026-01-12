@@ -16,8 +16,15 @@ export default async function handler(req, res) {
       item.summary.toLowerCase().includes('minister')
     );
     
-    // Return filtered political news or first 10 if no specific political news found
-    const result = politicalNews.length > 0 ? politicalNews.slice(0, 20) : allNews.slice(0, 10);
+    // Enhance image URLs for filtered news
+    const enhancedPoliticalNews = politicalNews.length > 0 ? politicalNews.slice(0, 20) : allNews.slice(0, 10);
+    const result = enhancedPoliticalNews.map(item => ({
+      ...item,
+      image_url: item.image_url || 'https://placehold.co/400x250?text=Politics+News',
+      // Ensure summary has content
+      summary: item.summary || 'Latest political and government news'
+    }));
+    
     res.status(200).json(result);
   } catch (err) {
     console.log("Politics API error:", err);

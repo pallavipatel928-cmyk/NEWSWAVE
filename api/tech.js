@@ -22,8 +22,15 @@ export default async function handler(req, res) {
       item.summary.toLowerCase().includes('internet')
     );
     
-    // Return filtered tech news or first 10 if no specific tech news found
-    const result = techNews.length > 0 ? techNews.slice(0, 20) : allNews.slice(0, 10);
+    // Enhance image URLs for filtered news
+    const enhancedTechNews = techNews.length > 0 ? techNews.slice(0, 20) : allNews.slice(0, 10);
+    const result = enhancedTechNews.map(item => ({
+      ...item,
+      image_url: item.image_url || 'https://placehold.co/400x250?text=Tech+News',
+      // Ensure summary has content
+      summary: item.summary || 'Latest technology and innovation news'
+    }));
+    
     res.status(200).json(result);
   } catch (err) {
     console.log("Tech API error:", err);

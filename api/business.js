@@ -20,26 +20,52 @@ function extractImageUrl(content) {
     return imageUrl.startsWith('http://') ? imageUrl.replace(/^http:\/\//, 'https://') : imageUrl;
   }
   
+  // Look for media:thumbnail in content (common in RSS feeds)
+  const mediaRegex = /<media:thumbnail url=["']([^"']*)["']|<img[^>]+src=["']([^"']*)["']/i;
+  const mediaMatch = content.match(mediaRegex);
+  if (mediaMatch) {
+    const imageUrl = mediaMatch[1] || mediaMatch[2];
+    if (imageUrl) {
+      // Ensure HTTPS for secure content
+      return imageUrl.startsWith('http://') ? imageUrl.replace(/^http:\/\//, 'https://') : imageUrl;
+    }
+  }
+  
   // Look for common image URLs in text
   const urlRegex = /(https?:\/\/[^\s]*?\.(?:jpg|jpeg|png|gif|webp))(?:[\?\s]|$)/i;
   const urlMatch = content.match(urlRegex);
   
-  const extractedUrl = urlMatch ? urlMatch[1] : "https://placehold.co/600x400?text=Business+News";
+  const extractedUrl = urlMatch ? urlMatch[1] : null;
   // Ensure HTTPS for secure content
-  return extractedUrl.startsWith('http://') ? extractedUrl.replace(/^http:\/\//, 'https://') : extractedUrl;
+  return extractedUrl && extractedUrl.startsWith('http://') ? extractedUrl.replace(/^http:\/\//, 'https://') : extractedUrl;
 }
 
 async function loadCategory(res, feedUrl, limit) {
   try {
     const feed = await parser.parseURL(feedUrl);
-    const items = feed.items.slice(0, limit).map(i => ({
-      title: i.title,
-      summary: i.contentSnippet || i.content || i.description || "",
-      link: i.link,
-      pubDate: i.pubDate,
-      source: feed.title,
-      image_url: i.enclosure?.url || extractImageUrl(i.contentSnippet || i.content || i.description || "")
-    }));
+    const items = feed.items.slice(0, limit).map(i => {
+      // Extract image with multiple fallback methods
+      let image_url = i.enclosure?.url || extractImageUrl(i.contentSnippet || i.content || i.description || '');
+      
+      // If no image found, try to generate from title or use category-specific placeholder
+      if (!image_url) {
+        if (i.title.toLowerCase().includes('market') || i.title.toLowerCase().includes('stock')) image_url = 'https://placehold.co/400x250?text=Stock+Market+News';
+        else if (i.title.toLowerCase().includes('corporate') || i.title.toLowerCase().includes('merger')) image_url = 'https://placehold.co/400x250?text=Corporate+News';
+        else if (i.title.toLowerCase().includes('trade') || i.title.toLowerCase().includes('commerce')) image_url = 'https://placehold.co/400x250?text=Trade+News';
+        else if (i.title.toLowerCase().includes('startup') || i.title.toLowerCase().includes('funding')) image_url = 'https://placehold.co/400x250?text=Startup+News';
+        else if (i.title.toLowerCase().includes('economy') || i.title.toLowerCase().includes('finance')) image_url = 'https://placehold.co/400x250?text=Economy+News';
+        else image_url = 'https://placehold.co/400x250?text=Business+News';
+      }
+      
+      return {
+        title: i.title,
+        summary: i.contentSnippet || i.content || i.description || '',
+        link: i.link,
+        pubDate: i.pubDate,
+        source: feed.title,
+        image_url: image_url
+      };
+    });
     res.status(200).json(items);
   } catch (err) {
     console.log("RSS Feed error for URL:", feedUrl, err.message);
