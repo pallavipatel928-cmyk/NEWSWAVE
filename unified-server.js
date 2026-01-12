@@ -124,6 +124,17 @@ app.post("/api/submit-news", express.json(), (req, res) => {
   }
 });
 
+// Helper function to ensure secure URLs
+function ensureSecureUrl(url) {
+  if (!url) return url;
+  
+  // Convert HTTP to HTTPS to avoid mixed content issues
+  if (typeof url === 'string' && url.startsWith('http://')) {
+    return url.replace(/^http:\/\//, 'https://');
+  }
+  return url;
+}
+
 // Helper function to filter news by category
 function filterByCategory(articles, category) {
   switch(category.toLowerCase()) {
@@ -192,7 +203,7 @@ app.get("/api/news", async (req, res) => {
           link: i.link,
           pubDate: i.pubDate,
           source: feed.title,
-          image_url: i.enclosure?.url || null
+          image_url: ensureSecureUrl(i.enclosure?.url || null)
         }));
         articles = articles.concat(items);
       } catch (e) {
@@ -211,7 +222,7 @@ app.get("/api/news", async (req, res) => {
             link: i.link,
             pubDate: i.pubDate,
             source: feed.title,
-            image_url: i.enclosure?.url || null
+            image_url: ensureSecureUrl(i.enclosure?.url || null)
           }));
           articles = articles.concat(items);
         } catch (e) {
@@ -422,7 +433,7 @@ async function loadCategory(res, feedUrl, limit) {
       link: i.link,
       pubDate: i.pubDate,
       source: feed.title,
-      image_url: i.enclosure?.url || null
+      image_url: ensureSecureUrl(i.enclosure?.url || null)
     }));
     res.json(items);
   } catch (err) {
